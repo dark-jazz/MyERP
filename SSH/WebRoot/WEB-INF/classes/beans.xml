@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           				   http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+           				   http://www.springframework.org/schema/context
+           				   http://www.springframework.org/schema/context/spring-context-4.3.xsd
+           				   http://www.springframework.org/schema/aop
+           				   http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+           				   http://www.springframework.org/schema/tx
+           				   http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+    <context:component-scan base-package="com.offcn">
+    </context:component-scan>
+   
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+	  <property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
+	  <property name="url" value="jdbc:mysql://localhost:3306/sshbase?useUnicode=true&amp;characterEncoding=utf8"></property>
+	  <property name="username" value="root"></property>
+	  <property name="password" value="123123"></property>
+	  <property name="initialSize" value="1"></property>
+	  <property name="maxActive" value="500"/>
+	  <property name="maxIdle" value="2"/>
+	  <property name="minIdle" value="1"/>
+	</bean>
+	
+	<!-- sessinfactory -->
+	<bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+	   <property name="dataSource" ref="dataSource"></property>
+	   <property name="configLocation" value="classpath:hibernate.cfg.xml"></property>
+	</bean>
+	
+	<!-- <bean id="userDao" class="com.offcn.dao.UserDaoImpl">
+	  <property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<bean id="userService" class="com.offcn.service.UserServiceImpl">
+	  <property name="userDao" ref="userDao"></property>
+	</bean>
+	<bean id="userAction" class="com.offcn.action.UserAction">
+	    <property name="userService" ref="userService"></property>
+	</bean> -->
+	
+	
+	
+	<bean id="tx" class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+	  <property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	
+	<tx:advice id="txadvice" transaction-manager="tx">
+	  <tx:attributes>
+	     <tx:method name="find*" isolation="DEFAULT" propagation="REQUIRED" read-only="true"/>
+	     <tx:method name="*" isolation="DEFAULT" propagation="REQUIRED"/>
+	  </tx:attributes>
+	</tx:advice>
+	
+	<aop:config>
+	   <aop:pointcut expression="execution(* com.offcn.service.*.*(..))" id="pid"/>
+	   <aop:advisor advice-ref="txadvice" pointcut-ref="pid"/>    
+	</aop:config>
+	
+	<!-- <tx:annotation-driven transaction-manager="tx"/> -->
+	
+</beans>
